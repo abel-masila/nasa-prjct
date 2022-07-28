@@ -3,9 +3,7 @@ import { BufReader } from 'https://deno.land/std@0.149.0/io/buffer.ts';
 import { parse } from 'https://deno.land/std@0.149.0/encoding/csv.ts';
 import * as _ from 'https://deno.land/x/lodash@4.17.15-es/lodash.js';
 
-interface Planet {
-  [key: string]: string | number;
-}
+type Planet = Record<string, string>;
 
 let planets: Array<Planet>;
 
@@ -21,9 +19,9 @@ async function loadPlanetsData() {
   Deno.close(file.rid);
 
   const planets = (results as Array<Planet>).filter((planet) => {
-    const planetaryRadius = planet['koi_prad'];
-    const stellarMass = planet['koi_smass'];
-    const stellarRadius = planet['koi_srad'];
+    const planetaryRadius = Number(planet['koi_prad']);
+    const stellarMass = Number(planet['koi_smass']);
+    const stellarRadius = Number(planet['koi_srad']);
 
     return (
       planet['koi_disposition'] === 'CONFIRMED' &&
@@ -41,7 +39,7 @@ async function loadPlanetsData() {
       'koi_prad',
       'koi_smass',
       'koi_srad',
-      'kepoi_name',
+      'kepler_name',
       'koi_count',
       'koi_steff',
     ]);
@@ -49,6 +47,8 @@ async function loadPlanetsData() {
 }
 
 planets = await loadPlanetsData();
+console.info(`${planets.length} habitable planets found!`);
+
 export function getAllPlanets() {
   return planets;
 }
