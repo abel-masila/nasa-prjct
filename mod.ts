@@ -21,6 +21,7 @@ app.use(async (ctx, next) => {
 });
 //routes middleware
 app.use(api.routes());
+app.use(api.allowedMethods());
 
 //static file middleware
 app.use(async (ctx) => {
