@@ -1,4 +1,5 @@
 import { Application, send } from 'https://deno.land/x/oak@v10.6.0/mod.ts';
+import api from './api.ts';
 
 const app = new Application();
 
@@ -18,6 +19,9 @@ app.use(async (ctx, next) => {
   const delta = Date.now() - start;
   ctx.response.headers.set('X-Response-Time', `${delta} ms`);
 });
+//routes middleware
+app.use(api.routes());
+
 //static file middleware
 app.use(async (ctx) => {
   const filePath = ctx.request.url.pathname;
@@ -32,11 +36,6 @@ app.use(async (ctx) => {
       root: `${Deno.cwd()}/public`,
     });
   }
-});
-
-app.use(async (ctx, next) => {
-  ctx.response.body = 'Mission Control API';
-  await next();
 });
 
 if (import.meta.main) {
