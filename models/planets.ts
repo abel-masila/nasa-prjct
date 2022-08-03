@@ -5,20 +5,11 @@ import * as _ from 'https://deno.land/x/lodash@4.17.15-es/lodash.js';
 
 type Planet = Record<string, string>;
 
+// deno-lint-ignore prefer-const
 let planets: Array<Planet>;
 
-async function loadPlanetsData() {
-  const path = join('data', 'kepler_exoplanets_nasa.csv');
-  const file = await Deno.open(path);
-
-  const bufReader = new BufReader(file);
-  const results = await parse(bufReader, {
-    skipFirstRow: true,
-    comment: '#',
-  });
-  Deno.close(file.rid);
-
-  const planets = (results as Array<Planet>).filter((planet) => {
+export function filterHabitablePlanets(planets: Array<Planet>) {
+  return planets.filter((planet) => {
     const planetaryRadius = Number(planet['koi_prad']);
     const stellarMass = Number(planet['koi_smass']);
     const stellarRadius = Number(planet['koi_srad']);
@@ -33,6 +24,21 @@ async function loadPlanetsData() {
       stellarRadius < 1.01
     );
   });
+}
+
+async function loadPlanetsData() {
+  const path = join('data', 'kepler_exoplanets_nasa.csv');
+  const file = await Deno.open(path);
+
+  const bufReader = new BufReader(file);
+  const results = await parse(bufReader, {
+    skipFirstRow: true,
+    comment: '#',
+  });
+
+  Deno.close(file.rid);
+
+  const planets = filterHabitablePlanets(results as Array<Planet>);
 
   return planets.map((planet) => {
     return _.pick(planet, [
