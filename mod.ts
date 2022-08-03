@@ -1,16 +1,46 @@
 import { Application, send } from 'https://deno.land/x/oak@v10.6.0/mod.ts';
+import * as log from 'https://deno.land/std@0.149.0/log/mod.ts';
 import api from './api.ts';
 
 const app = new Application();
 
 const PORT = 8000;
 
+await log.setup({
+  handlers: {
+    console: new log.handlers.ConsoleHandler('INFO'),
+  },
+
+  loggers: {
+    // configure default logger available via short-hand methods above.
+    default: {
+      level: 'INFO',
+      handlers: ['console'],
+    },
+  },
+});
+
+//error handling middleware
+app.use(async (ctx, next) => {
+  try {
+    await next();
+  } catch (err) {
+    log.error(err);
+    ctx.response.body = 'Internal server error';
+    throw err;
+  }
+});
+
+app.addEventListener('error', (event) => {
+  log.error(event.error);
+});
+
 //logger middleware
 app.use(async (ctx, next) => {
   await next();
   const time = ctx.response.headers.get('X-Response-Time');
 
-  console.log(`${ctx.request.method} ${ctx.request.url}- ${time}`);
+  log.info(`${ctx.request.method} ${ctx.request.url}- ${time}`);
 });
 //Timing middleware
 app.use(async (ctx, next) => {
@@ -40,5 +70,6 @@ app.use(async (ctx) => {
 });
 
 if (import.meta.main) {
+  log.info(`Starting server on port ${PORT}...`);
   await app.listen({ port: PORT });
 }
